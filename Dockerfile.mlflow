@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+WORKDIR /mlflow
+
+# pip 업그레이드 및 mlflow 설치
+RUN pip install -U pip && \
+    pip install mlflow==2.15.0
+
+# MLflow 서버 실행
+CMD ["mlflow", "server", \
+    "--host", "0.0.0.0", \
+    "--port", "5000", \
+    "--backend-store-uri", "sqlite:////mlflow/db/mlflow.sqlite", \
+    "--default-artifact-root", "/mlflow/mlruns"]

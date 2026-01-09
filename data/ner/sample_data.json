@@ -1,0 +1,168 @@
+{
+  "version": "1.0",
+  "description": "KCD 코드 예측을 위한 의료 NER 샘플 데이터셋",
+  "samples": [
+    {
+      "id": "sample_001",
+      "text": "환자가 3일전 넘어지면서 좌측 무릎에 통증이 발생하여 X-ray 검사 결과 골절로 진단받았습니다.",
+      "entities": [
+        {
+          "start": 4,
+          "end": 7,
+          "label": "TIME",
+          "text": "3일전"
+        },
+        {
+          "start": 8,
+          "end": 13,
+          "label": "CAUSE",
+          "text": "넘어지면서"
+        },
+        {
+          "start": 14,
+          "end": 16,
+          "label": "SIDE",
+          "text": "좌측"
+        },
+        {
+          "start": 17,
+          "end": 19,
+          "label": "BODY",
+          "text": "무릎"
+        },
+        {
+          "start": 21,
+          "end": 23,
+          "label": "SYMPTOM",
+          "text": "통증"
+        },
+        {
+          "start": 30,
+          "end": 35,
+          "label": "TEST",
+          "text": "X-ray"
+        },
+        {
+          "start": 42,
+          "end": 44,
+          "label": "DIS_MAIN",
+          "text": "골절"
+        }
+      ],
+      "meta": {
+        "source": "sample",
+        "annotator": "system"
+      }
+    },
+    {
+      "id": "sample_002",
+      "text": "급성 위염으로 인한 복부 통증을 호소하며 내시경 검사 후 약물 치료를 시행하였습니다.",
+      "entities": [
+        {
+          "start": 0,
+          "end": 2,
+          "label": "TIME",
+          "text": "급성"
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "label": "DIS_MAIN",
+          "text": "위염"
+        },
+        {
+          "start": 11,
+          "end": 13,
+          "label": "BODY",
+          "text": "복부"
+        },
+        {
+          "start": 14,
+          "end": 16,
+          "label": "SYMPTOM",
+          "text": "통증"
+        },
+        {
+          "start": 23,
+          "end": 26,
+          "label": "TEST",
+          "text": "내시경"
+        },
+        {
+          "start": 32,
+          "end": 37,
+          "label": "TREATMENT",
+          "text": "약물 치료"
+        }
+      ],
+      "meta": {
+        "source": "sample",
+        "annotator": "system"
+      }
+    },
+    {
+      "id": "sample_003",
+      "text": "교통사고로 인해 우측 어깨 탈구 및 양측 손목 골절 진단, CT 촬영 후 수술 예정입니다.",
+      "entities": [
+        {
+          "start": 0,
+          "end": 4,
+          "label": "CAUSE",
+          "text": "교통사고"
+        },
+        {
+          "start": 9,
+          "end": 11,
+          "label": "SIDE",
+          "text": "우측"
+        },
+        {
+          "start": 12,
+          "end": 14,
+          "label": "BODY",
+          "text": "어깨"
+        },
+        {
+          "start": 15,
+          "end": 17,
+          "label": "DIS_MAIN",
+          "text": "탈구"
+        },
+        {
+          "start": 20,
+          "end": 22,
+          "label": "SIDE",
+          "text": "양측"
+        },
+        {
+          "start": 23,
+          "end": 25,
+          "label": "BODY",
+          "text": "손목"
+        },
+        {
+          "start": 26,
+          "end": 28,
+          "label": "DIS_MAIN",
+          "text": "골절"
+        },
+        {
+          "start": 33,
+          "end": 35,
+          "label": "TEST",
+          "text": "CT"
+        },
+        {
+          "start": 41,
+          "end": 43,
+          "label": "TREATMENT",
+          "text": "수술"
+        }
+      ],
+      "meta": {
+        "source": "sample",
+        "annotator": "system"
+      }
+    }
+  ]
+}

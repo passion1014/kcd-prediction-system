@@ -1,0 +1,27 @@
+services:
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    container_name: mlflow
+    working_dir: /mlflow
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./mlruns:/mlflow/mlruns
+      - ./mlflow_db:/mlflow/db
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: api
+    env_file:
+      - .env
+    volumes:
+      - ./mlruns:/mlflow/mlruns
+    depends_on:
+      - mlflow
+    ports:
+      - "8000:8000"
+    command: bash -c "uvicorn src.api.main:app --host 0.0.0.0 --port 8000"

@@ -1,0 +1,177 @@
+{
+  "version": "1.0",
+  "description": "KCD 코드 예측을 위한 샘플 데이터셋",
+  "samples": [
+    {
+      "id": "kcd_001",
+      "text": "환자가 3일전 넘어지면서 좌측 무릎에 통증이 발생하여 X-ray 검사 결과 골절로 진단받았습니다.",
+      "ner_features": {
+        "body": [
+          "무릎"
+        ],
+        "side": [
+          "좌측"
+        ],
+        "dis_main": [
+          "골절"
+        ],
+        "symptom": [
+          "통증"
+        ],
+        "cause": [
+          "넘어지면서"
+        ],
+        "time": [
+          "3일전"
+        ],
+        "test": [
+          "X-ray"
+        ],
+        "treatment": []
+      },
+      "meta_features": {
+        "age": 45,
+        "gender": "M",
+        "reception_route": "응급",
+        "department": "정형외과",
+        "edi_code": "",
+        "has_edi": false
+      },
+      "kcd_code": "S82.0",
+      "kcd_name": "무릎뼈의 골절"
+    },
+    {
+      "id": "kcd_002",
+      "text": "급성 위염으로 인한 복부 통증을 호소하며 내시경 검사 후 약물 치료를 시행하였습니다.",
+      "ner_features": {
+        "body": [
+          "복부"
+        ],
+        "side": [],
+        "dis_main": [
+          "위염"
+        ],
+        "symptom": [
+          "통증"
+        ],
+        "cause": [],
+        "time": [
+          "급성"
+        ],
+        "test": [
+          "내시경"
+        ],
+        "treatment": [
+          "약물 치료"
+        ]
+      },
+      "meta_features": {
+        "age": 52,
+        "gender": "F",
+        "reception_route": "외래",
+        "department": "소화기내과",
+        "edi_code": "",
+        "has_edi": false
+      },
+      "kcd_code": "K29.1",
+      "kcd_name": "기타 급성 위염"
+    },
+    {
+      "id": "kcd_003",
+      "text": "교통사고로 인해 우측 어깨 탈구 진단, CT 촬영 후 수술 예정입니다.",
+      "ner_features": {
+        "body": [
+          "어깨"
+        ],
+        "side": [
+          "우측"
+        ],
+        "dis_main": [
+          "탈구"
+        ],
+        "symptom": [],
+        "cause": [
+          "교통사고"
+        ],
+        "time": [],
+        "test": [
+          "CT"
+        ],
+        "treatment": [
+          "수술"
+        ]
+      },
+      "meta_features": {
+        "age": 28,
+        "gender": "M",
+        "reception_route": "응급",
+        "department": "정형외과",
+        "edi_code": "",
+        "has_edi": false
+      },
+      "kcd_code": "S43.0",
+      "kcd_name": "어깨관절의 탈구"
+    },
+    {
+      "id": "kcd_004",
+      "text": "당뇨병 환자로 혈당 조절 불량으로 내원. 인슐린 치료 조절 필요.",
+      "ner_features": {
+        "body": [],
+        "side": [],
+        "dis_main": [
+          "당뇨병"
+        ],
+        "symptom": [
+          "혈당 조절 불량"
+        ],
+        "cause": [],
+        "time": [],
+        "test": [],
+        "treatment": [
+          "인슐린 치료"
+        ]
+      },
+      "meta_features": {
+        "age": 65,
+        "gender": "M",
+        "reception_route": "외래",
+        "department": "내분비내과",
+        "edi_code": "",
+        "has_edi": false
+      },
+      "kcd_code": "E11.9",
+      "kcd_name": "합병증이 없는 제2형 당뇨병"
+    },
+    {
+      "id": "kcd_005",
+      "text": "감기 증상으로 콧물, 기침 호소. 급성 비인두염 진단.",
+      "ner_features": {
+        "body": [],
+        "side": [],
+        "dis_main": [
+          "비인두염"
+        ],
+        "symptom": [
+          "콧물",
+          "기침"
+        ],
+        "cause": [],
+        "time": [
+          "급성"
+        ],
+        "test": [],
+        "treatment": []
+      },
+      "meta_features": {
+        "age": 8,
+        "gender": "F",
+        "reception_route": "외래",
+        "department": "소아청소년과",
+        "edi_code": "",
+        "has_edi": false
+      },
+      "kcd_code": "J00",
+      "kcd_name": "급성 비인두염(감기)"
+    }
+  ]
+}
