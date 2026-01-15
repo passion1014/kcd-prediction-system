@@ -149,57 +149,15 @@ class NERDataset:
 
 def create_sample_dataset() -> NERDataset:
     """샘플 데이터셋 생성 (테스트/문서화용)"""
-    samples = [
-        NERSample(
-            id="sample_001",
-            text="환자가 3일전 넘어지면서 좌측 무릎에 통증이 발생하여 X-ray 검사 결과 골절로 진단받았습니다.",
-            entities=[
-                Entity(start=4, end=7, label="TIME", text="3일전"),
-                Entity(start=8, end=13, label="CAUSE", text="넘어지면서"),
-                Entity(start=14, end=16, label="SIDE", text="좌측"),
-                Entity(start=17, end=19, label="BODY", text="무릎"),
-                Entity(start=21, end=23, label="SYMPTOM", text="통증"),
-                Entity(start=30, end=35, label="TEST", text="X-ray"),
-                Entity(start=42, end=44, label="DIS_MAIN", text="골절"),
-            ],
-            meta={"source": "sample", "annotator": "system"}
-        ),
-        NERSample(
-            id="sample_002",
-            text="급성 위염으로 인한 복부 통증을 호소하며 내시경 검사 후 약물 치료를 시행하였습니다.",
-            entities=[
-                Entity(start=0, end=2, label="TIME", text="급성"),
-                Entity(start=3, end=5, label="DIS_MAIN", text="위염"),
-                Entity(start=11, end=13, label="BODY", text="복부"),
-                Entity(start=14, end=16, label="SYMPTOM", text="통증"),
-                Entity(start=23, end=26, label="TEST", text="내시경"),
-                Entity(start=32, end=37, label="TREATMENT", text="약물 치료"),
-            ],
-            meta={"source": "sample", "annotator": "system"}
-        ),
-        NERSample(
-            id="sample_003",
-            text="교통사고로 인해 우측 어깨 탈구 및 양측 손목 골절 진단, CT 촬영 후 수술 예정입니다.",
-            entities=[
-                Entity(start=0, end=4, label="CAUSE", text="교통사고"),
-                Entity(start=9, end=11, label="SIDE", text="우측"),
-                Entity(start=12, end=14, label="BODY", text="어깨"),
-                Entity(start=15, end=17, label="DIS_MAIN", text="탈구"),
-                Entity(start=20, end=22, label="SIDE", text="양측"),
-                Entity(start=23, end=25, label="BODY", text="손목"),
-                Entity(start=26, end=28, label="DIS_MAIN", text="골절"),
-                Entity(start=33, end=35, label="TEST", text="CT"),
-                Entity(start=41, end=43, label="TREATMENT", text="수술"),
-            ],
-            meta={"source": "sample", "annotator": "system"}
-        ),
-    ]
+    data_path = Path(__file__).resolve().parents[2] / "data" / "ner" / "sample_data.json"
 
-    return NERDataset(
-        samples=samples,
-        version="1.0",
-        description="KCD 코드 예측을 위한 의료 NER 샘플 데이터셋"
-    )
+    if not data_path.exists():
+        raise FileNotFoundError(f"샘플 데이터 파일을 찾을 수 없습니다: {data_path}")
+
+    try:
+        return NERDataset.load_json(data_path)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"샘플 데이터 파일 파싱에 실패했습니다: {data_path}") from exc
 
 
 if __name__ == "__main__":

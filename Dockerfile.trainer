@@ -1,3 +1,7 @@
+# 빌드: docker build -f Dockerfile.trainer -t trainer:local .
+# 실행: docker run --rm --network ml_default -v $(pwd)/mlruns:/mlflow/mlruns -e MLFLOW_TRACKING_URI=http://mlflow:5000 trainer:local
+# 옵션: --rm(종료후삭제), --network(서버연결), -v(결과저장), -e(서버주소)
+
 FROM python:3.11-slim
 
 WORKDIR /app
