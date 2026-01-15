@@ -118,6 +118,13 @@ class NERModel:
         """
         모델 학습 (Custom Training Loop)
 
+        학습 과정 (Step 4):
+        - DataLoader를 통해 데이터를 배치 단위로 가져옵니다.
+        - Optimizer(AdamW)와 Scheduler(Linear Warmup)를 설정합니다.
+        - 매 배치마다 Forward pass를 수행하여 Loss(CrossEntropy)를 계산합니다.
+        - Backward pass를 통해 가중치를 업데이트하고 학습을 진행합니다.
+        - 매 에포크가 끝날 때마다 검증 데이터로 성능을 평가하고 최적의 모델을 저장합니다.
+
         Args:
             train_dataset: 학습 데이터셋 (NERTokenDataset)
             eval_dataset: 평가 데이터셋 (선택)

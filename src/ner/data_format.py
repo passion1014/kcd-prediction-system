@@ -148,7 +148,13 @@ class NERDataset:
 
 
 def create_sample_dataset() -> NERDataset:
-    """샘플 데이터셋 생성 (테스트/문서화용)"""
+    """
+    샘플 데이터셋 생성 (테스트/문서화용)
+    
+    학습 과정 (Step 1): 
+    - data/ner/sample_data.json 파일을 로드하여 NERDataset 객체를 생성합니다.
+    - 이 데이터는 모델의 입력 형식을 검증하고 최소한의 학습 기능을 테스트하는 데 사용됩니다.
+    """
     data_path = Path(__file__).resolve().parents[2] / "data" / "ner" / "sample_data.json"
 
     if not data_path.exists():

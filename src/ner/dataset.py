@@ -56,6 +56,12 @@ class NERTokenDataset(Dataset):
         """
         단일 샘플 전처리: span -> BIO 토큰 태그 변환
 
+        학습 과정 (Step 2):
+        - 원본 텍스트를 토크나이저를 통해 토큰 단위로 쪼갭니다.
+        - 각 토큰의 위치(offset)와 엔티티의 위치(start, end)를 비교합니다.
+        - 시작 토큰에는 'B-', 내부 토큰에는 'I-', 무관한 토큰에는 'O' 태그를 부여합니다.
+        - 특수 토큰(CLS, SEP 등)은 손실 계산에서 제외하도록 -100으로 설정합니다.
+
         Args:
             sample: NERSample 객체
 

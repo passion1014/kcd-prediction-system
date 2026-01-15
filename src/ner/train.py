@@ -85,6 +85,14 @@ def parse_args():
 
 
 def main():
+    """
+    NER 모델 학습 메인 프로세스
+    
+    학습 과정 (Step 1 & 3):
+    1. --sample 옵션 사용 시 sample_data.json을 로드합니다.
+    2. NERModelConfig를 통해 하이퍼파라미터(에포크, 배치 크기 등)를 설정합니다.
+    3. 로드된 데이터를 학습용과 검증용으로 분할합니다.
+    """
     args = parse_args()
 
     print("=" * 60)
