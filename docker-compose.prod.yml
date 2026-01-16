@@ -1,0 +1,13 @@
+services:
+  api:
+    image: api:latest           # USB로 옮겨온 이미지 사용
+    container_name: kcd-api-prod
+    restart: always
+    ports:
+      - "58080:8000"               # 충돌 방지를 위해 58080 포트 사용
+    volumes:
+      - ./prod_model:/app/models/latest_model:ro  # 추출한 모델 폴더 연결 (읽기 전용)
+      - ./src:/app/src                            # (선택) 운영 중 긴급 수정이 필요할 경우 대비
+    environment:
+      - LOCAL_MODEL_PATH=/app/models/latest_model
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000

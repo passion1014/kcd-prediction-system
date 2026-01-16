@@ -284,8 +284,33 @@ docker run --rm --network ml_default \
 open http://localhost:5001
 
 # API Health Check
-curl http://localhost:8000/health
+curl http://localhost:58080/health
 ```
+
+---
+
+## 폐쇄망/USB 이동 배포 가이드
+
+인터넷이 제한된 환경(폐쇄망)에서 USB를 통해 이미지를 옮겨 배포하는 방법입니다.
+
+### 1. 개발 서버 (테스트베드용)
+개발 서버에서 직접 학습을 수행하고 코드를 수정하며 테스트하는 환경입니다.
+
+- **패키징 (로컬)**: `./scripts/package_for_usb.sh` 실행 (이미지 3종 + 소스 코드 포함)
+- **배포 (개발 서버)**:
+  1. `docker load -i kcd_images.tar`로 이미지 로드
+  2. `docker compose up -d mlflow api`로 서비스 기동
+  3. `./scripts/run_training.sh <데이터경로>` 로 학습 수행
+- **상세 가이드**: [README_DEV_SERVER.md](scripts/README_DEV_SERVER.md)
+
+### 2. 운영 서버 (서비스 전용)
+학습 도구 없이 최적화된 모델만 가지고 독립적으로 추론 서비스를 제공하는 환경입니다.
+
+- **패키징 (개발 서버)**: `./scripts/package_for_prod.sh` 실행 (API 이미지 + 최종 모델 폴더 포함)
+- **배포 (운영 서버)**:
+  1. `docker load -i kcd_api_image.tar`로 이미지 로드
+  2. `docker compose -f docker-compose.prod.yml up -d`로 기동
+  3. 58080포트를 통해 즉시 추론 서비스 시작
 
 ---
 
@@ -355,7 +380,7 @@ MODEL_STAGE=Production
 2. Trainer 실행 - 모델 학습 및 Registry 등록 (Staging)
 3. MLflow UI에서 Production 승격
 4. `docker compose restart api` - Production 모델 로드
-5. `curl http://localhost:8000/health` - 확인
+5. `curl http://localhost:58080/health` - 확인
 
 ---
 

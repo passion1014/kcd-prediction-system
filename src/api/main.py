@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import pandas as pd
 import mlflow
 from fastapi import FastAPI, HTTPException
@@ -23,28 +24,42 @@ class ModelHolder:
         self.model = None
         self.loaded_version = None
 
+    def load_model(self):
+        local_path = os.getenv("LOCAL_MODEL_PATH")
+        if local_path and os.path.exists(local_path):
+            print(f"Loading model from local path: {local_path}")
+            self.model = mlflow.pyfunc.load_model(local_path)
+            self.loaded_version = "local"
+        else:
+            self.load_from_registry()
+
     def load_from_registry(self):
+        print(f"Connecting to MLflow at {MLFLOW_TRACKING_URI}...")
         mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
         client = MlflowClient()
 
         # Stage 기반 조회
-        versions = client.get_latest_versions(MLFLOW_MODEL_NAME, stages=[MODEL_STAGE])
-        if not versions:
-            raise RuntimeError(f"No model found in stage={MODEL_STAGE} for {MLFLOW_MODEL_NAME}")
+        try:
+            versions = client.get_latest_versions(MLFLOW_MODEL_NAME, stages=[MODEL_STAGE])
+            if not versions:
+                raise RuntimeError(f"No model found in stage={MODEL_STAGE} for {MLFLOW_MODEL_NAME}")
 
-        v = versions[0]
-        model_uri = f"models:/{MLFLOW_MODEL_NAME}/{MODEL_STAGE}"
+            v = versions[0]
+            model_uri = f"models:/{MLFLOW_MODEL_NAME}/{MODEL_STAGE}"
 
-        # pyfunc 모델 로드
-        self.model = mlflow.pyfunc.load_model(model_uri)
-        self.loaded_version = v.version
+            # pyfunc 모델 로드
+            self.model = mlflow.pyfunc.load_model(model_uri)
+            self.loaded_version = v.version
+        except Exception as e:
+            print(f"Failed to load from registry: {e}")
+            raise e
 
 holder = ModelHolder()
 
 @app.on_event("startup")
 def startup():
-    # 서버 기동 시 Production 모델 로드
-    holder.load_from_registry()
+    # 서버 기동 시 모델 로드
+    holder.load_model()
 
 @app.get("/health")
 def health():

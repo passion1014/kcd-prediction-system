@@ -19,9 +19,29 @@ services:
     env_file:
       - .env
     volumes:
-      - ./mlruns:/mlflow/mlruns
+      - ./src:/app/src           # 소스 코드 실시간 동기화 (개발용)
+      - ./mlruns:/mlflow/mlruns  # 모델 로컬 로드 시 필요
     depends_on:
       - mlflow
     ports:
-      - "8000:8000"
+      - "58080:8000"
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - LOCAL_MODEL_PATH=/app/models/latest_model
     command: bash -c "uvicorn src.api.main:app --host 0.0.0.0 --port 8000"
+
+  trainer:
+    build:
+      context: .
+      dockerfile: Dockerfile.trainer
+    container_name: trainer
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src           # 소스 코드 실시간 동기화 (개발용)
+      - ./mlruns:/mlflow/mlruns  # 학습 결과 저장
+      - ./data:/app/data         # 개발서버 데이터 연결용
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    # 학습기는 기본적으로 실행되지 않고 대기하거나, 쉘로 진입하여 사용
+    command: tail -f /dev/null 

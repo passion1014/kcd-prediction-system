@@ -20,7 +20,7 @@ Follow every rule below when reading, editing, testing, or shipping code.
 Use absolute module paths (`python -m ...`) so imports stay stable.
 
 ### 2.1 Core scripts
-- FastAPI dev server: `uvicorn src.api.main:app --reload --port 8000` (ensure MLflow registry is reachable).
+- FastAPI dev server: `uvicorn src.api.main:app --reload --port 58080` (ensure MLflow registry is reachable).
 - AutoGluon trainer dry run: `python -m src.trainer.train` (registers a model and promotes it to Staging).
 - NER sample training: `python -m src.ner.train --sample --epochs 2 --output_dir ./ner_output`.
 - KCD sample training: `python -m src.kcd.train --sample --epochs 2 --output_dir ./kcd_output`.

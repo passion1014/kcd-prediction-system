@@ -33,6 +33,7 @@ Thumbs.db
 ner_output/
 kcd_output/
 kcd_model_output/
+*_output/
 
 # MLflow
 mlruns/
