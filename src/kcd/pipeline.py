@@ -3,7 +3,7 @@ KCD 예측 파이프라인
 
 전체 흐름:
 1. 사고내용 텍스트 입력
-2. NER 모델로 Feature 추출 (BODY, SIDE, DIS_MAIN, SYMPTOM, CAUSE, TIME, TEST, TREATMENT)
+2. NER 모델로 Feature 추출 (BODY, SIDE, DIS_MAIN, SYMPTOM, CAUSE, TIME, TEST, TREATMENT, ACT, NEG, DIS_HIST)
 3. 메타 정보 결합 (나이, 성별, 접수경로, 진료과목, EDI)
 4. KCD 예측 모델로 최종 코드 예측
 
@@ -21,10 +21,8 @@ KCD 예측 파이프라인
     )
 """
 
-import json
 from dataclasses import dataclass
 from typing import Optional
-from pathlib import Path
 
 from src.ner.model import NERModel, load_model as load_ner_model
 from src.kcd.model import KCDPredictionModel, load_model as load_kcd_model
@@ -128,6 +126,9 @@ class KCDPredictionPipeline:
             time=features_dict.get("TIME", []),
             test=features_dict.get("TEST", []),
             treatment=features_dict.get("TREATMENT", []),
+            act=features_dict.get("ACT", []),
+            neg=features_dict.get("NEG", []),
+            dis_hist=features_dict.get("DIS_HIST", []),
         )
 
     def predict(

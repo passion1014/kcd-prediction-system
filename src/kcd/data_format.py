@@ -45,6 +45,9 @@ class NERFeatures:
     time: list[str] = field(default_factory=list)        # 시점/기간
     test: list[str] = field(default_factory=list)        # 검사/영상
     treatment: list[str] = field(default_factory=list)   # 치료/수술
+    act: list[str] = field(default_factory=list)         # 행위/동작
+    neg: list[str] = field(default_factory=list)         # 부정표현
+    dis_hist: list[str] = field(default_factory=list)    # 과거력/기왕증
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -60,6 +63,9 @@ class NERFeatures:
             time=data.get("time", data.get("TIME", [])),
             test=data.get("test", data.get("TEST", [])),
             treatment=data.get("treatment", data.get("TREATMENT", [])),
+            act=data.get("act", data.get("ACT", [])),
+            neg=data.get("neg", data.get("NEG", [])),
+            dis_hist=data.get("dis_hist", data.get("DIS_HIST", [])),
         )
 
     def to_text(self) -> str:
@@ -81,13 +87,20 @@ class NERFeatures:
             parts.append(f"[검사] {', '.join(self.test)}")
         if self.treatment:
             parts.append(f"[치료] {', '.join(self.treatment)}")
+        if self.act:
+            parts.append(f"[행위] {', '.join(self.act)}")
+        if self.neg:
+            parts.append(f"[부정] {', '.join(self.neg)}")
+        if self.dis_hist:
+            parts.append(f"[과거력] {', '.join(self.dis_hist)}")
         return " ".join(parts)
 
     def is_empty(self) -> bool:
         """모든 필드가 비어있는지 확인"""
         return not any([
             self.body, self.side, self.dis_main, self.symptom,
-            self.cause, self.time, self.test, self.treatment
+            self.cause, self.time, self.test, self.treatment,
+            self.act, self.neg, self.dis_hist
         ])
 
 
@@ -246,6 +259,8 @@ def create_sample_dataset() -> KCDPredictionDataset:
                 cause=["넘어지면서"],
                 time=["3일전"],
                 test=["X-ray"],
+                act=[],
+                neg=[],
             ),
             meta_features=MetaFeatures(
                 age=45,
@@ -266,6 +281,8 @@ def create_sample_dataset() -> KCDPredictionDataset:
                 time=["급성"],
                 test=["내시경"],
                 treatment=["약물 치료"],
+                act=[],
+                neg=[],
             ),
             meta_features=MetaFeatures(
                 age=52,
@@ -286,6 +303,8 @@ def create_sample_dataset() -> KCDPredictionDataset:
                 cause=["교통사고"],
                 test=["CT"],
                 treatment=["수술"],
+                act=["운전"],
+                neg=[],
             ),
             meta_features=MetaFeatures(
                 age=28,
@@ -303,6 +322,8 @@ def create_sample_dataset() -> KCDPredictionDataset:
                 dis_main=["당뇨병"],
                 symptom=["혈당 조절 불량"],
                 treatment=["인슐린 치료"],
+                act=[],
+                neg=[],
             ),
             meta_features=MetaFeatures(
                 age=65,
@@ -320,6 +341,8 @@ def create_sample_dataset() -> KCDPredictionDataset:
                 dis_main=["비인두염"],
                 symptom=["콧물", "기침"],
                 time=["급성"],
+                act=[],
+                neg=[],
             ),
             meta_features=MetaFeatures(
                 age=8,
@@ -363,7 +386,7 @@ if __name__ == "__main__":
     print(f"NER Features: {sample.ner_features.to_text()}")
     print(f"Meta Features: {sample.meta_features.to_text()}")
     print(f"KCD 코드: {sample.kcd_code} ({sample.kcd_name})")
-    print(f"\n모델 입력:")
+    print("\n모델 입력:")
     print(f"  {sample.get_model_input()}")
 
     # JSON 출력

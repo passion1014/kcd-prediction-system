@@ -13,8 +13,7 @@ import argparse
 import json
 from pathlib import Path
 
-from src.ner.model import NERModel, load_model
-
+from src.ner.model import load_model
 
 def parse_args():
     parser = argparse.ArgumentParser(description="NER 추론")
@@ -88,12 +87,12 @@ def main():
 
     # 단일 텍스트 추론
     if args.text:
-        print(f"\n[입력 텍스트]")
-        print(f"  {args.text}")
+        print("\n[입력 텍스트]")
+        print(f"  원본: {args.text}")
 
         if args.extract_features:
             features = model.extract_features(args.text)
-            print(f"\n[추출된 Feature]")
+            print("\n[추출된 Feature]")
             print(format_features(features))
             results.append({
                 "text": args.text,
@@ -101,7 +100,7 @@ def main():
             })
         else:
             entities = model.predict(args.text)
-            print(f"\n[추출된 엔티티]")
+            print("\n[추출된 엔티티]")
             print(format_entities(entities))
             results.append({
                 "text": args.text,

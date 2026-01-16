@@ -4,10 +4,8 @@ NER 모델 정의 및 학습/추론 기능
 KoELECTRA 기반 Token Classification 모델
 """
 
-import os
 import json
 import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
 from transformers import (
@@ -97,11 +95,16 @@ class NERModel:
         path = Path(model_path)
 
         # 설정 로드
-        config_path = path / "config.json"
+        config_path = path / "ner_config.json"
         if config_path.exists():
             self.config = NERModelConfig.load(str(config_path))
         else:
-            self.config = NERModelConfig()
+            # 하위 호환성: config.json 시도
+            old_config_path = path / "config.json"
+            if old_config_path.exists():
+                self.config = NERModelConfig.load(str(old_config_path))
+            else:
+                self.config = NERModelConfig()
 
         # 토크나이저 및 모델 로드
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -268,20 +271,33 @@ class NERModel:
 
     def predict(self, text: str) -> list[dict]:
         """
-        단일 텍스트에서 개체명 추출
+        단일 텍스트에서 개체명 추출 (형태소 분석 자동 적용)
 
         Args:
             text: 입력 텍스트
 
         Returns:
-            추출된 엔티티 리스트
-            [{"text": "...", "label": "...", "start": int, "end": int}, ...]
+            추출된 엔티티 리스트 (원본 텍스트 기준 오프셋)
         """
+        from src.common.nlp_utils import get_analyzer
+        analyzer = get_analyzer()
         self.model.eval()
 
-        # 토큰화
+        # 형태소 분석 및 오프셋 정보 획득
+        morpheme_data = analyzer.get_morpheme_offsets(text)
+        processed_text = " ".join([m[0] for m in morpheme_data])
+        
+        # 새 텍스트 인덱스 -> 원본 텍스트 인덱스 역매핑 테이블
+        reverse_map = {}
+        current_new_idx = 0
+        for m_text, m_start, m_end in morpheme_data:
+            for i in range(len(m_text)):
+                reverse_map[current_new_idx + i] = m_start + i
+            current_new_idx += len(m_text) + 1 # 공백 포함
+
+        # 토큰화 (전처리된 텍스트 사용)
         encoding = self.tokenizer(
-            text,
+            processed_text,
             return_tensors="pt",
             truncation=True,
             max_length=self.config.max_length,
@@ -289,8 +305,6 @@ class NERModel:
         )
 
         offset_mapping = encoding.pop("offset_mapping")[0].tolist()
-
-        # GPU로 이동
         inputs = {k: v.to(self.device) for k, v in encoding.items()}
 
         # 예측
@@ -299,10 +313,25 @@ class NERModel:
 
         predictions = torch.argmax(outputs.logits, dim=2)[0].cpu().tolist()
 
-        # 엔티티 추출
-        entities = self._extract_entities(text, predictions, offset_mapping)
+        # 엔티티 추출 (전처리된 텍스트 기준)
+        raw_entities = self._extract_entities(processed_text, predictions, offset_mapping)
 
-        return entities
+        # 위치 정보를 원본 텍스트 기준으로 복원
+        final_entities = []
+        for e in raw_entities:
+            # 시작/끝 위치 복원
+            orig_start = reverse_map.get(e["start"])
+            orig_end = reverse_map.get(e["end"] - 1, -1) + 1
+            
+            if orig_start is not None and orig_end > orig_start:
+                final_entities.append({
+                    "label": e["label"],
+                    "start": orig_start,
+                    "end": orig_end,
+                    "text": text[orig_start:orig_end]
+                })
+
+        return final_entities
 
     def predict_batch(self, texts: list[str]) -> list[list[dict]]:
         """

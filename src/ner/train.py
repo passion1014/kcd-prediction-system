@@ -10,7 +10,10 @@ NER 모델 학습 스크립트
 """
 
 import argparse
+import random
 from pathlib import Path
+
+import torch
 
 from src.ner.model import NERModel, NERModelConfig
 from src.ner.dataset import NERTokenDataset
@@ -81,6 +84,20 @@ def parse_args():
         help="모델 저장 경로",
     )
 
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="랜덤 시드 (기본값: 42)",
+    )
+
+    parser.add_argument(
+        "--use_morphemes",
+        action="store_true",
+        default=True,
+        help="형태소 단위 띄어쓰기 전처리 사용 (기본값: True)",
+    )
+
     return parser.parse_args()
 
 
@@ -88,12 +105,17 @@ def main():
     """
     NER 모델 학습 메인 프로세스
     
-    학습 과정 (Step 1 & 3):
-    1. --sample 옵션 사용 시 sample_data.json을 로드합니다.
-    2. NERModelConfig를 통해 하이퍼파라미터(에포크, 배치 크기 등)를 설정합니다.
-    3. 로드된 데이터를 학습용과 검증용으로 분할합니다.
+    학습 과정:
+    1. (Step 1) 데이터 로드: --sample 또는 --data_path를 통해 데이터를 읽어옵니다.
+    2. (Step 3) 데이터 분할: 로드된 데이터를 학습용과 검증용으로 나눕니다. (Step 2는 Dataset 생성 시 수행)
     """
     args = parse_args()
+
+    # 시드 고정 (재현성 확보)
+    random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(args.seed)
 
     print("=" * 60)
     print("NER 모델 학습")
@@ -116,52 +138,55 @@ def main():
     print(f"  에포크: {config.num_epochs}")
     print(f"  학습률: {config.learning_rate}")
     print(f"  출력 경로: {config.output_dir}")
+    print(f"  랜덤 시드: {args.seed}")
 
     # 모델 초기화
     print("\n[모델 초기화]")
     model = NERModel(config=config)
     print(f"  디바이스: {model.device}")
 
-    # 데이터 로드
+    # 데이터 로드 (Step 1)
     print("\n[데이터 로드]")
+    all_samples = []
+    
     if args.sample:
-        print("  샘플 데이터 사용")
+        print("  샘플 데이터 로드...")
         dataset = create_sample_dataset()
-        samples = dataset.samples
-
-        # 간단히 train/val 분할
-        split_idx = max(1, int(len(samples) * args.train_ratio))
-        train_samples = samples[:split_idx]
-        val_samples = samples[split_idx:] if split_idx < len(samples) else []
-
-    elif args.data_path:
-        print(f"  데이터 파일: {args.data_path}")
+        if args.use_morphemes:
+            dataset = dataset.apply_morpheme_spacing()
+        all_samples.extend(dataset.samples)
+        
+    if args.data_path:
+        print(f"  실제 데이터 파일 로드: {args.data_path}")
         path = Path(args.data_path)
-
         if path.suffix == ".jsonl":
-            dataset = NERDataset.load_jsonl(path)
+            dataset = NERDataset.load_jsonl(path, use_morphemes=args.use_morphemes)
         else:
-            dataset = NERDataset.load_json(path)
-
-        # 데이터 검증
+            dataset = NERDataset.load_json(path, use_morphemes=args.use_morphemes)
+        
+        # 데이터 검증 (데이터 파일 로드 시에만 수행)
         errors = dataset.validate_all()
         if errors:
             print(f"  경고: {len(errors)}개 샘플에 오류 발견")
             for sample_id, errs in list(errors.items())[:3]:
                 print(f"    {sample_id}: {errs[0]}")
+        
+        all_samples.extend(dataset.samples)
 
-        # 분할
-        import random
-        samples = dataset.samples.copy()
-        random.shuffle(samples)
-        split_idx = int(len(samples) * args.train_ratio)
-        train_samples = samples[:split_idx]
-        val_samples = samples[split_idx:]
-
-    else:
-        print("  오류: --data_path 또는 --sample 옵션을 지정하세요.")
+    if not all_samples:
+        print("  오류: 학습할 데이터가 없습니다. --data_path 또는 --sample 옵션을 지정하세요.")
         return
 
+    # 데이터 분할 (Step 3)
+    # 복사본을 생성하여 셔플
+    samples_to_split = all_samples.copy()
+    random.shuffle(samples_to_split)
+    
+    split_idx = max(1, int(len(samples_to_split) * args.train_ratio))
+    train_samples = samples_to_split[:split_idx]
+    val_samples = samples_to_split[split_idx:] if split_idx < len(samples_to_split) else []
+
+    print(f"  전체 통합 샘플: {len(all_samples)}개")
     print(f"  학습 샘플: {len(train_samples)}개")
     print(f"  검증 샘플: {len(val_samples)}개")
 

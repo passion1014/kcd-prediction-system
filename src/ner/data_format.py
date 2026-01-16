@@ -104,11 +104,15 @@ class NERDataset:
             json.dump(self.to_dict(), f, ensure_ascii=False, indent=2)
 
     @classmethod
-    def load_json(cls, path: str | Path) -> "NERDataset":
+    def load_json(cls, path: str | Path, use_morphemes: bool = False) -> "NERDataset":
         """JSON 파일에서 로드"""
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        return cls.from_dict(data)
+        dataset = cls.from_dict(data)
+        
+        if use_morphemes:
+            dataset = dataset.apply_morpheme_spacing()
+        return dataset
 
     def save_jsonl(self, path: str | Path):
         """JSONL 파일로 저장 (대용량 데이터용)"""
@@ -117,14 +121,67 @@ class NERDataset:
                 f.write(json.dumps(sample.to_dict(), ensure_ascii=False) + "\n")
 
     @classmethod
-    def load_jsonl(cls, path: str | Path) -> "NERDataset":
+    def load_jsonl(cls, path: str | Path, use_morphemes: bool = False) -> "NERDataset":
         """JSONL 파일에서 로드"""
         samples = []
         with open(path, "r", encoding="utf-8") as f:
             for line in f:
                 if line.strip():
                     samples.append(NERSample.from_dict(json.loads(line)))
-        return cls(samples=samples)
+        dataset = cls(samples=samples)
+        
+        if use_morphemes:
+            dataset = dataset.apply_morpheme_spacing()
+        return dataset
+
+    def apply_morpheme_spacing(self) -> "NERDataset":
+        """전체 데이터셋에 형태소 단위 띄어쓰기 및 오프셋 재계산 적용"""
+        from src.common.nlp_utils import get_analyzer
+        analyzer = get_analyzer()
+        new_samples = []
+
+        for sample in self.samples:
+            original_text = sample.text
+            morpheme_data = analyzer.get_morpheme_offsets(original_text)
+            
+            # 새로운 텍스트 생성
+            processed_text = " ".join([m[0] for m in morpheme_data])
+            
+            # 오프셋 매핑 테이블
+            offset_map = {}
+            current_new_idx = 0
+            for m_text, m_start, m_end in morpheme_data:
+                for original_idx in range(m_start, m_end):
+                    offset_map[original_idx] = current_new_idx + (original_idx - m_start)
+                current_new_idx += len(m_text) + 1 # 공백 포함
+
+            new_entities = []
+            for entity in sample.entities:
+                new_start = offset_map.get(entity.start)
+                if new_start is None:
+                    for i in range(entity.start, entity.end):
+                        if i in offset_map:
+                            new_start = offset_map[i]
+                            break
+                
+                new_end = offset_map.get(entity.end - 1, -1) + 1
+                
+                if new_start is not None and new_end > new_start:
+                    new_entities.append(Entity(
+                        start=new_start,
+                        end=new_end,
+                        label=entity.label,
+                        text=processed_text[new_start:new_end]
+                    ))
+            
+            new_samples.append(NERSample(
+                id=sample.id,
+                text=processed_text,
+                entities=new_entities,
+                meta=sample.meta
+            ))
+            
+        return NERDataset(samples=new_samples, version=self.version, description=self.description)
 
     def validate_all(self) -> dict[str, list[str]]:
         """전체 데이터셋 검증"""
